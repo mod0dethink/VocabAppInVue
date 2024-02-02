@@ -30,11 +30,6 @@ h1 {
   transition: all 0.3s ease; /* アニメーション効果 */
 }
 
-h1:hover {
-  transform: scale(1.05); /* ホバー時に少し大きく */
-  background-color: #e8e8e8; /* ホバー時の背景色 */
-}
-
 .app-container {
   display: flex; /* フレックスボックスを有効化 */
 }

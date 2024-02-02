@@ -4,15 +4,17 @@
     <div v-if="checkedWords.length === 0">
       <p>選択されていません。</p>
     </div>
-    <div v-else-if="currentWordIndex < checkedWords.length">
-      <h2>現在の単語: {{ currentWord.word }}</h2>
-      <button @click="showTranslation = !showTranslation">和訳を表示</button>
-      <p v-if="showTranslation">和訳: {{ currentWord.translation }}</p>
-      <button @click="goToNextWord">次へ</button>
-    </div>
-    <div v-else>
-      <p>全ての単語の学習が完了しました。</p>
-    </div>
+    <template v-else>
+      <div v-if="currentWordIndex < checkedWords.length">
+        <h2>{{ currentWord.word }}</h2>
+        <button @click="showTranslation = !showTranslation">和訳を表示</button>
+        <p v-if="showTranslation">和訳: {{ currentWord.translation }}</p>
+        <button @click="goToNextWord">次へ</button>
+      </div>
+      <div v-else>
+        <p>全ての単語の学習が完了しました。</p>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -47,3 +49,45 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+div {
+  color: #333; /* テキストの色 */
+  font-family: 'Arial', sans-serif; /* フォントファミリー */
+  text-align: center;
+}
+
+button {
+  background-color: #fff; /* ボタンの背景色 */
+  color: #333; /* ボタンのテキスト色 */
+  border: 2px solid #333; /* ボタンの境界線 */
+  padding: 10px 20px; /* ボタン内のパディング */
+  margin: 10px 15px; /* ボタン外のマージン */
+  border-radius: 5px; /* ボタンの角の丸み */
+  cursor: pointer; /* カーソルをポインターに */
+  transition: background-color 0.3s, color 0.3s; /* 背景色とテキスト色の変化を滑らかに */
+}
+
+button:hover {
+  background-color: #333; /* ホバー時の背景色 */
+  color: #fff; /* ホバー時のテキスト色 */
+}
+
+p {
+  margin: 10px 0; /* パラグラフの外側のマージン */
+}
+
+/* 学習画面全体のスタイリング */
+div {
+  max-width: 600px; /* 最大幅 */
+  margin: 0 auto; /* 中央揃え */
+  padding: 20px; /* 内側のパディング */
+}
+
+/* 和訳を表示する部分のスタイリング */
+p {
+  background-color: #f0f0f0; /* 背景色 */
+  padding: 10px; /* パディング */
+  border-radius: 5px; /* 角の丸み */
+}
+</style>

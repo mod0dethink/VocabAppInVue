@@ -1,21 +1,41 @@
 <template>
   <div>
     <h1>単語一覧ページ</h1>
-    <input v-model="inputWord" placeholder="単語">
-    <input v-model="inputTranslation" placeholder="和訳">
-    <button @click="saveToLocalStorage">保存</button>
-    <button @click="deleteWords" class="delete-button">削除</button>
+    <input v-model="searchWords" placeholder="単語">
+    <input v-model="searchTranslations" placeholder="和訳">
+    <div class="button">
+      <button @click="registerDialog" class="register-button">新規作成</button>
+      <button @click="editDialog" class="save-button">編集</button>
+      <button @click="deleteWords" class="delete-button">削除</button>
+    </div>
+    <!-- 新規作成ダイアログ、showCreateDialogがtrueの時に表示 -->
+    <dialog id="create-dialog" ref="createDialog">
+      <h2>新規単語の追加</h2>
+      <input v-model="inputWord" placeholder="単語を入力">
+      <input v-model="inputTranslation" placeholder="和訳を入力">
+      <button @click="saveToLocalStorage">保存</button>
+      <button @click="closeCreateDialog">キャンセル</button>
+    </dialog>
+    <!--編集ダイアログ -->
+    <dialog id="edit-dialog" ref="editDialog">
+      <h2>編集</h2>
+      <input v-model="editWord" placeholder="単語を入力">
+      <input v-model="editTranslation" placeholder="和訳を入力">
+      <button @click="updateWord">更新</button>
+      <button @click="closeEditDialog">キャンセル</button>
+    </dialog>
+
     <div class="table-container">
       <table>
         <thead>
           <tr>
-            <th></th> <!-- チェックボックス用のヘッダー -->
+            <th><input type="checkbox" @change="toggleAllChecks"></th> <!-- マスターチェックボックスを追加 -->
             <th>単語</th>
             <th>和訳</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(word, index) in words" :key="index">
+          <tr v-for="(word, index) in filteredWords" :key="index">
             <td><input type="checkbox" v-model="word.checked"></td>
             <td>{{ word.word }}</td>
             <td>{{ word.translation }}</td>
@@ -33,12 +53,34 @@ export default {
     return {
       inputWord: '',
       inputTranslation: '',
-      words: [] // LocalStorageから読み込んだデータを保持する配列
+      editWord: '',
+      editTranslation: '',
+      editIndex: null,
+      words: [],
+      showCreateDialog: false,
+      searchWords: '',
+      searchTranslations: '',
     };
   },
+  computed: {
+    filteredWords() {
+      return this.words.filter(word => {
+        const wordLowerCase = word.word.toLowerCase();
+        const translationLowerCase = word.translation.toLowerCase();
+        const searchWordsLowerCase = this.searchWords.toLowerCase();
+        const searchTranslationsLowerCase = this.searchTranslations.toLowerCase();
+        return wordLowerCase.includes(searchWordsLowerCase) && translationLowerCase.includes(searchTranslationsLowerCase);
+      });
+    }
+  },
   methods: {
+    registerDialog() {
+      this.$refs.createDialog.showModal();
+    },
+    closeCreateDialog() {
+      this.$refs.createDialog.close();
+    },
     saveToLocalStorage() {
-      // 新しい単語を追加してLocalStorageに保存
       this.words.push({ word: this.inputWord, translation: this.inputTranslation, checked: false });
       this.updateLocalStorage();
       this.inputWord = '';
@@ -55,15 +97,42 @@ export default {
       this.words = this.words.filter(word => !word.checked);
       // LocalStorageを更新
       this.updateLocalStorage();
-    }
+    },
+    editDialog() {
+      const checkedWords = this.words.filter(word => word.checked);
+      if (checkedWords.length === 1) {
+        this.editIndex = this.words.indexOf(checkedWords[0]);
+        this.editWord = checkedWords[0].word;
+        this.editTranslation = checkedWords[0].translation;
+        this.$refs.editDialog.showModal();
+      } else {
+        alert('1つしか編集できません');
+      }
+    },
+    closeEditDialog() {
+      this.$refs.editDialog.close();
+    },
+    updateWord() {
+      if (this.editIndex !== null) {
+        this.words[this.editIndex].word = this.editWord;
+        this.words[this.editIndex].translation = this.editTranslation;
+        this.updateLocalStorage();
+        this.closeEditDialog();
+      }
+    },
+    toggleAllChecks(event) {
+      const isChecked = event.target.checked;
+      this.words.forEach(word => {
+        word.checked = isChecked;
+      });
+    },
   },
   watch: {
     words: {
       handler() {
-        // words配列が変更されたらLocalStorageを更新
         this.updateLocalStorage();
       },
-      deep: true // 配列内のオブジェクトの変更も検知する
+      deep: true
     }
   },
   mounted() {
@@ -73,10 +142,17 @@ export default {
 </script>
 
 <style scoped>
+.button {
+  text-align: right;
+}
+
 .table-container {
-  max-height: 400px; /* コンテナの最大高さを設定 */
-  overflow-y: auto; /* 縦方向にスクロールバーを表示 */
-  border: 1px solid #ddd; /* コンテナの境界線を設定 */
+  max-height: 300px;
+  /* コンテナの最大高さを設定 */
+  overflow-y: auto;
+  /* 縦方向にスクロールバーを表示 */
+  border: 1px solid #ddd;
+  /* コンテナの境界線を設定 */
 }
 
 input {
@@ -96,34 +172,6 @@ input {
   /* ボックスサイズの計算方法 */
 }
 
-/* 保存ボタンのスタイル */
-button {
-  display: block;
-  /* ブロックレベル要素として表示 */
-  width: 100px;
-  /* 幅 */
-  margin: 20px auto;
-  /* 上下のマージンを20px、左右は自動で中央揃えに */
-  padding: 10px 15px;
-  /* 内側の余白 */
-  background-color: #333;
-  /* 背景色 */
-  color: #fff;
-  /* 文字色 */
-  border: none;
-  /* 境界線なし */
-  border-radius: 5px;
-  /* 境界線の角を丸く */
-  cursor: pointer;
-  /* カーソルをポインターに */
-  transition: background-color 0.3s;
-  /* 背景色の変化を滑らかに */
-}
-
-button:hover {
-  background-color: #555;
-  /* ホバー時の背景色 */
-}
 
 table {
   border-collapse: collapse;
@@ -147,5 +195,83 @@ td {
 th {
   background-color: #f2f2f2;
   /* ヘッダーの背景色 */
+}
+
+.button {
+  text-align: right;
+}
+
+/* ボタン共通スタイル */
+.button button {
+  background-color: #ffffff;
+  /* 白色背景 */
+  color: #333333;
+  /* 濃いグレー文字色 */
+  border: 2px solid #333333;
+  /* 濃いグレー枠 */
+  padding: 8px 16px;
+  /* 内側の余白 */
+  margin: 5px;
+  /* 外側の余白 */
+  border-radius: 4px;
+  /* 角の丸み */
+  cursor: pointer;
+  /* カーソルをポインターに */
+  transition: background-color 0.3s, color 0.3s;
+  /* 背景色と文字色の変化を滑らかに */
+}
+
+/* ボタンホバー時のスタイル */
+.button button:hover {
+  background-color: #333333;
+  /* 濃いグレー背景 */
+  color: #ffffff;
+  /* 白色文字色 */
+}
+
+/* 新規作成ボタンのスタイル */
+.register-button {
+  border-color: #4CAF50;
+  /* 緑色枠 */
+}
+
+.register-button:hover {
+  background-color: #4CAF50;
+  /* 緑色背景 */
+}
+
+/* 編集ボタンのスタイル */
+.save-button {
+  border-color: #2196F3;
+}
+
+.save-button:hover {
+  background-color: #2196F3;
+}
+
+.delete-button {
+  border-color: #f44336;
+}
+
+.delete-button:hover {
+  background-color: #f44336;
+}
+/* ダイアログボックスのスタイル調整 */
+dialog {
+  width: 80%; /* ダイアログの幅を80%に */
+  max-width: 500px; /* 最大幅を500pxに設定 */
+  padding: 20px; /* パディングを20pxに */
+  border: 1px solid #ccc; /* 境界線のスタイル */
+  border-radius: 5px; /* 角の丸み */
+}
+
+/* ダイアログ内のinputタグのスタイル調整 */
+dialog input {
+  width: 100%; /* 幅を100%に */
+  margin: 10px 0; /* 上下のマージンを10pxに */
+  padding: 10px; /* パディングを10pxに */
+  font-size: 16px; /* フォントサイズを16pxに */
+  border: 1px solid #ccc; /* 境界線のスタイル */
+  border-radius: 4px; /* 角の丸み */
 }
 </style>
