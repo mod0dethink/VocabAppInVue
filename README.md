@@ -1,4 +1,4 @@
-# spa-test2
+# VocabAppInVue
 
 ## Project setup
 ```
