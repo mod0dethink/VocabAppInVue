@@ -1,9 +1,13 @@
 <template>
   <div>
     <h1>単語一覧ページ</h1>
-    <input v-model="searchWords" placeholder="単語">
-    <input v-model="searchTranslations" placeholder="和訳">
+    <div class="search-container">
+      <input v-model="searchWords" placeholder="単語">
+      <input v-model="searchTranslations" placeholder="和訳">
+    </div>
     <div class="button">
+      <input type="file" @change="loadWords" accept=".json">
+      <button @click="downloadWords" class="download-button">単語ダウンロード</button>
       <button @click="registerDialog" class="register-button">新規作成</button>
       <button @click="editDialog" class="save-button">編集</button>
       <button @click="deleteWords" class="delete-button">削除</button>
@@ -89,8 +93,6 @@ export default {
     updateLocalStorage() {
       // LocalStorageを更新
       localStorage.setItem('Words', JSON.stringify(this.words));
-      const checkedWords = this.words.filter(word => word.checked);
-      localStorage.setItem('CheckedWords', JSON.stringify(checkedWords));
     },
     deleteWords() {
       // チェックされていない単語のみを残す
@@ -126,6 +128,39 @@ export default {
         word.checked = isChecked;
       });
     },
+    downloadWords() {
+      const wordsData = JSON.stringify(this.words);
+      const blob = new Blob([wordsData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'words.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    },
+    loadWords(event) {
+      const file = event.target.files[0];
+      if (!file) {
+        return; // ファイルが選択されていなければ何もしない
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const words = JSON.parse(e.target.result);
+          if (Array.isArray(words)) {
+            this.words = words; // 読み込んだ単語リストでwordsを更新
+            this.updateLocalStorage(); // LocalStorageを更新
+          } else {
+            alert('ファイルの形式が正しくありません。');
+          }
+        } catch (error) {
+          alert('ファイルの読み込みに失敗しました。');
+        }
+      };
+      reader.readAsText(file); // ファイルの内容をテキストとして読み込む
+    },
   },
   watch: {
     words: {
@@ -155,7 +190,7 @@ export default {
   /* コンテナの境界線を設定 */
 }
 
-input {
+.search-container input {
   display: block;
   /* ブロックレベル要素として表示 */
   width: 30%;
@@ -171,7 +206,6 @@ input {
   box-sizing: border-box;
   /* ボックスサイズの計算方法 */
 }
-
 
 table {
   border-collapse: collapse;
@@ -229,49 +263,34 @@ th {
   /* 白色文字色 */
 }
 
-/* 新規作成ボタンのスタイル */
-.register-button {
-  border-color: #4CAF50;
-  /* 緑色枠 */
-}
-
-.register-button:hover {
-  background-color: #4CAF50;
-  /* 緑色背景 */
-}
-
-/* 編集ボタンのスタイル */
-.save-button {
-  border-color: #2196F3;
-}
-
-.save-button:hover {
-  background-color: #2196F3;
-}
-
-.delete-button {
-  border-color: #f44336;
-}
-
-.delete-button:hover {
-  background-color: #f44336;
-}
 /* ダイアログボックスのスタイル調整 */
 dialog {
-  width: 80%; /* ダイアログの幅を80%に */
-  max-width: 500px; /* 最大幅を500pxに設定 */
-  padding: 20px; /* パディングを20pxに */
-  border: 1px solid #ccc; /* 境界線のスタイル */
-  border-radius: 5px; /* 角の丸み */
+  width: 80%;
+  /* ダイアログの幅を80%に */
+  max-width: 500px;
+  /* 最大幅を500pxに設定 */
+  padding: 20px;
+  /* パディングを20pxに */
+  border: 1px solid #ccc;
+  /* 境界線のスタイル */
+  border-radius: 5px;
+  /* 角の丸み */
 }
 
 /* ダイアログ内のinputタグのスタイル調整 */
 dialog input {
-  width: 100%; /* 幅を100%に */
-  margin: 10px 0; /* 上下のマージンを10pxに */
-  padding: 10px; /* パディングを10pxに */
-  font-size: 16px; /* フォントサイズを16pxに */
-  border: 1px solid #ccc; /* 境界線のスタイル */
-  border-radius: 4px; /* 角の丸み */
+  width: 100%;
+  /* 幅を100%に */
+  margin: 10px 0;
+  /* 上下のマージンを10pxに */
+  padding: 10px;
+  /* パディングを10pxに */
+  font-size: 16px;
+  /* フォントサイズを16pxに */
+  border: 1px solid #ccc;
+  /* 境界線のスタイル */
+  border-radius: 4px;
+  /* 角の丸み */
 }
+
 </style>
