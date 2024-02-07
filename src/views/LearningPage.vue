@@ -42,11 +42,13 @@ export default {
     }
   },
   mounted() {
-    const savedCheckedWords = localStorage.getItem('CheckedWords');
-    if (savedCheckedWords) {
-      this.checkedWords = JSON.parse(savedCheckedWords);
-    }
+  const savedWords = localStorage.getItem('Words');
+  if (savedWords) {
+    const words = JSON.parse(savedWords);
+    // チェックされた単語のみをフィルタリング
+    this.checkedWords = words.filter(word => word.checked);
   }
+}
 }
 </script>
 

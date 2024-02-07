@@ -127,6 +127,7 @@ export default {
       this.words.forEach(word => {
         word.checked = isChecked;
       });
+      this.updateLocalStorage();
     },
     downloadWords() {
       const wordsData = JSON.stringify(this.words);
