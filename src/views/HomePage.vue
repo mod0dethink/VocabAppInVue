@@ -89,6 +89,7 @@ export default {
       this.updateLocalStorage();
       this.inputWord = '';
       this.inputTranslation = '';
+      this.$refs.createDialog.close();
     },
     updateLocalStorage() {
       // LocalStorageを更新
