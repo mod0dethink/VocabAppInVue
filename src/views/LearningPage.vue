@@ -9,7 +9,11 @@
         <h2>{{ currentWord.word }}</h2>
         <button @click="showTranslation = !showTranslation">和訳を表示</button>
         <p v-if="showTranslation">和訳: {{ currentWord.translation }}</p>
-        <button @click="goToNextWord">次へ</button>
+        <div v-if="showTranslation">
+          <button @click="updateWordDifficulty('普通')">普通</button>
+          <button @click="updateWordDifficulty('簡単')">簡単</button>
+          <button @click="updateWordDifficulty('難しい')">難しい</button>
+        </div>
       </div>
       <div v-else>
         <p>全ての単語の学習が完了しました。</p>
@@ -39,16 +43,22 @@ export default {
         this.currentWordIndex++;
       }
       this.showTranslation = false;
+    },
+    updateWordDifficulty(difficulty) {
+      if (this.currentWordIndex < this.checkedWords.length) {
+        this.checkedWords[this.currentWordIndex].difficulty = difficulty;
+        localStorage.setItem('Words', JSON.stringify(this.checkedWords));
+        this.goToNextWord();
+      }
     }
   },
   mounted() {
-  const savedWords = localStorage.getItem('Words');
-  if (savedWords) {
-    const words = JSON.parse(savedWords);
-    // チェックされた単語のみをフィルタリング
-    this.checkedWords = words.filter(word => word.checked);
+    const savedWords = localStorage.getItem('Words');
+    if (savedWords) {
+      const words = JSON.parse(savedWords);
+      this.checkedWords = words.filter(word => word.checked);
+    }
   }
-}
 }
 </script>
 

@@ -36,6 +36,7 @@
             <th><input type="checkbox" @change="toggleAllChecks"></th> <!-- マスターチェックボックスを追加 -->
             <th>単語</th>
             <th>和訳</th>
+            <th>難易度</th>
           </tr>
         </thead>
         <tbody>
@@ -43,6 +44,7 @@
             <td><input type="checkbox" v-model="word.checked"></td>
             <td>{{ word.word }}</td>
             <td>{{ word.translation }}</td>
+            <td>{{ word.difficulty || '未学習' }}</td>
           </tr>
         </tbody>
       </table>
