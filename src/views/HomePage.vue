@@ -17,6 +17,7 @@
       <h2>新規単語の追加</h2>
       <input v-model="inputWord" placeholder="単語を入力">
       <input v-model="inputTranslation" placeholder="和訳を入力">
+      <input v-model="inputExample" placeholder="例文を入力">
       <button @click="saveToLocalStorage">保存</button>
       <button @click="closeCreateDialog">キャンセル</button>
     </dialog>
@@ -25,6 +26,7 @@
       <h2>編集</h2>
       <input v-model="editWord" placeholder="単語を入力">
       <input v-model="editTranslation" placeholder="和訳を入力">
+      <input v-model="editExample" placeholder="例文を入力">
       <button @click="updateWord">更新</button>
       <button @click="closeEditDialog">キャンセル</button>
     </dialog>
@@ -36,6 +38,7 @@
             <th><input type="checkbox" @change="toggleAllChecks"></th> <!-- マスターチェックボックスを追加 -->
             <th>単語</th>
             <th>和訳</th>
+            <th>例文</th>
             <th>難易度</th>
           </tr>
         </thead>
@@ -44,6 +47,7 @@
             <td><input type="checkbox" v-model="word.checked"></td>
             <td>{{ word.word }}</td>
             <td>{{ word.translation }}</td>
+            <td>{{ word.example }}</td>
             <td>{{ word.difficulty || '未学習' }}</td>
           </tr>
         </tbody>
@@ -59,8 +63,10 @@ export default {
     return {
       inputWord: '',
       inputTranslation: '',
+      inputExample: '', // 例文用のプロパティを追加
       editWord: '',
       editTranslation: '',
+      editExample: '', // 編集時の例文用のプロパティを追加
       editIndex: null,
       words: [],
       showCreateDialog: false,
@@ -87,10 +93,11 @@ export default {
       this.$refs.createDialog.close();
     },
     saveToLocalStorage() {
-      this.words.push({ word: this.inputWord, translation: this.inputTranslation, checked: false });
+      this.words.push({ word: this.inputWord, translation: this.inputTranslation, example: this.inputExample, checked: false }); // 例文を追加
       this.updateLocalStorage();
       this.inputWord = '';
       this.inputTranslation = '';
+      this.inputExample = ''; // 例文フィールドをリセット
       this.$refs.createDialog.close();
     },
     updateLocalStorage() {
@@ -109,6 +116,7 @@ export default {
         this.editIndex = this.words.indexOf(checkedWords[0]);
         this.editWord = checkedWords[0].word;
         this.editTranslation = checkedWords[0].translation;
+        this.editExample = checkedWords[0].example; // 例文を編集用フィールドに設定
         this.$refs.editDialog.showModal();
       } else {
         alert('1つしか編集できません');
@@ -121,6 +129,7 @@ export default {
       if (this.editIndex !== null) {
         this.words[this.editIndex].word = this.editWord;
         this.words[this.editIndex].translation = this.editTranslation;
+        this.words[this.editIndex].example = this.editExample; // 例文を更新
         this.updateLocalStorage();
         this.closeEditDialog();
       }

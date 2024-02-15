@@ -10,8 +10,8 @@
         <button @click="showTranslation = !showTranslation">和訳を表示</button>
         <p v-if="showTranslation">和訳: {{ currentWord.translation }}</p>
         <div v-if="showTranslation">
-          <button @click="updateWordDifficulty('普通')">普通</button>
           <button @click="updateWordDifficulty('簡単')">簡単</button>
+          <button @click="updateWordDifficulty('普通')">普通</button>
           <button @click="updateWordDifficulty('難しい')">難しい</button>
         </div>
       </div>
