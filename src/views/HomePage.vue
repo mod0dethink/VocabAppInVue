@@ -4,6 +4,13 @@
     <div class="search-container">
       <input v-model="searchWords" placeholder="単語">
       <input v-model="searchTranslations" placeholder="和訳">
+      <select v-model="searchDifficulty">
+        <option value="全て">全て</option>
+        <option value="簡単">簡単</option>
+        <option value="普通">普通</option>
+        <option value="難しい">難しい</option>
+        <option value="未学習">未学習</option>
+      </select>
     </div>
     <div class="button">
       <input type="file" @change="loadWords" accept=".json">
@@ -58,32 +65,37 @@
 
 <script>
 export default {
-  name: 'HomePage',
+  name: "HomePage",
   data() {
     return {
-      inputWord: '',
-      inputTranslation: '',
-      inputExample: '', // 例文用のプロパティを追加
-      editWord: '',
-      editTranslation: '',
-      editExample: '', // 編集時の例文用のプロパティを追加
+      inputWord: "",
+      inputTranslation: "",
+      inputExample: "", // 例文用のプロパティを追加
+      editWord: "",
+      editTranslation: "",
+      editExample: "", // 編集時の例文用のプロパティを追加
       editIndex: null,
       words: [],
       showCreateDialog: false,
-      searchWords: '',
-      searchTranslations: '',
+      searchWords: "",
+      searchTranslations: "",
+      searchDifficulty: "全て",
     };
   },
   computed: {
     filteredWords() {
-      return this.words.filter(word => {
+      return this.words.filter((word) => {
         const wordLowerCase = word.word.toLowerCase();
         const translationLowerCase = word.translation.toLowerCase();
         const searchWordsLowerCase = this.searchWords.toLowerCase();
         const searchTranslationsLowerCase = this.searchTranslations.toLowerCase();
-        return wordLowerCase.includes(searchWordsLowerCase) && translationLowerCase.includes(searchTranslationsLowerCase);
+        const difficultyMatch = this.searchDifficulty === "全て" || word.difficulty === this.searchDifficulty;
+
+        return wordLowerCase.includes(searchWordsLowerCase) &&
+          translationLowerCase.includes(searchTranslationsLowerCase) &&
+          difficultyMatch;
       });
-    }
+    },
   },
   methods: {
     registerDialog() {
@@ -95,23 +107,23 @@ export default {
     saveToLocalStorage() {
       this.words.push({ word: this.inputWord, translation: this.inputTranslation, example: this.inputExample, checked: false }); // 例文を追加
       this.updateLocalStorage();
-      this.inputWord = '';
-      this.inputTranslation = '';
-      this.inputExample = ''; // 例文フィールドをリセット
+      this.inputWord = "";
+      this.inputTranslation = "";
+      this.inputExample = "";
       this.$refs.createDialog.close();
     },
     updateLocalStorage() {
       // LocalStorageを更新
-      localStorage.setItem('Words', JSON.stringify(this.words));
+      localStorage.setItem("Words", JSON.stringify(this.words));
     },
     deleteWords() {
       // チェックされていない単語のみを残す
-      this.words = this.words.filter(word => !word.checked);
+      this.words = this.words.filter((word) => !word.checked);
       // LocalStorageを更新
       this.updateLocalStorage();
     },
     editDialog() {
-      const checkedWords = this.words.filter(word => word.checked);
+      const checkedWords = this.words.filter((word) => word.checked);
       if (checkedWords.length === 1) {
         this.editIndex = this.words.indexOf(checkedWords[0]);
         this.editWord = checkedWords[0].word;
@@ -119,7 +131,7 @@ export default {
         this.editExample = checkedWords[0].example; // 例文を編集用フィールドに設定
         this.$refs.editDialog.showModal();
       } else {
-        alert('1つしか編集できません');
+        alert("1つしか編集できません");
       }
     },
     closeEditDialog() {
@@ -136,18 +148,18 @@ export default {
     },
     toggleAllChecks(event) {
       const isChecked = event.target.checked;
-      this.words.forEach(word => {
+      this.words.forEach((word) => {
         word.checked = isChecked;
       });
       this.updateLocalStorage();
     },
     downloadWords() {
       const wordsData = JSON.stringify(this.words);
-      const blob = new Blob([wordsData], { type: 'application/json' });
+      const blob = new Blob([wordsData], { type: "application/json" });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.download = 'words.json';
+      link.download = "words.json";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -166,10 +178,10 @@ export default {
             this.words = words; // 読み込んだ単語リストでwordsを更新
             this.updateLocalStorage(); // LocalStorageを更新
           } else {
-            alert('ファイルの形式が正しくありません。');
+            alert("ファイルの形式が正しくありません。");
           }
         } catch (error) {
-          alert('ファイルの読み込みに失敗しました。');
+          alert("ファイルの読み込みに失敗しました。");
         }
       };
       reader.readAsText(file); // ファイルの内容をテキストとして読み込む
@@ -180,15 +192,14 @@ export default {
       handler() {
         this.updateLocalStorage();
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   mounted() {
-    this.words = JSON.parse(localStorage.getItem('Words')) || [];
-  }
-}
+    this.words = JSON.parse(localStorage.getItem("Words")) || [];
+  },
+};
 </script>
-
 <style scoped>
 .button {
   text-align: right;
@@ -203,7 +214,8 @@ export default {
   /* コンテナの境界線を設定 */
 }
 
-.search-container input {
+.search-container input,
+select {
   display: block;
   /* ブロックレベル要素として表示 */
   width: 30%;
@@ -305,5 +317,4 @@ dialog input {
   border-radius: 4px;
   /* 角の丸み */
 }
-
 </style>

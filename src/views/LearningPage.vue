@@ -20,7 +20,7 @@
         <p>全ての単語の学習が完了しました。</p>
       </div>
     </template>
-  </div>
+  </div> 
 </template>
 
 <script scoped>
